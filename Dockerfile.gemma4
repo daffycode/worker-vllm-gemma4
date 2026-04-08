@@ -1,18 +1,29 @@
-FROM vllm/vllm-openai:gemma4
+FROM nvidia/cuda:12.9.1-base-ubuntu22.04
+
+RUN apt-get update -y \
+    && apt-get install -y python3-pip git
+
+RUN ldconfig /usr/local/cuda-12.9/compat/
+
+# Install vLLM nightly with Gemma 4 support + latest transformers from source
+RUN python3 -m pip install --upgrade pip && \
+    python3 -m pip install -U vllm --pre --index-url https://pypi.org/simple --extra-index-url https://wheels.vllm.ai/nightly && \
+    python3 -m pip install git+https://github.com/huggingface/transformers.git
 
 # Install RunPod handler dependencies
 COPY builder/requirements.txt /requirements.txt
-RUN pip install --no-cache-dir -r /requirements.txt
+RUN python3 -m pip install --no-cache-dir -r /requirements.txt
 
 # Copy RunPod handler source
 COPY src /src
 
-# Default env vars (overridden by RunPod template env at runtime)
+# Default env vars
+ARG BASE_PATH="/runpod-volume"
 ENV MODEL_NAME="google/gemma-4-31B-it" \
-    BASE_PATH="/runpod-volume" \
-    HF_DATASETS_CACHE="/runpod-volume/huggingface-cache/datasets" \
-    HUGGINGFACE_HUB_CACHE="/runpod-volume/huggingface-cache/hub" \
-    HF_HOME="/runpod-volume/huggingface-cache/hub" \
+    BASE_PATH=$BASE_PATH \
+    HF_DATASETS_CACHE="${BASE_PATH}/huggingface-cache/datasets" \
+    HUGGINGFACE_HUB_CACHE="${BASE_PATH}/huggingface-cache/hub" \
+    HF_HOME="${BASE_PATH}/huggingface-cache/hub" \
     HF_HUB_ENABLE_HF_TRANSFER=0 \
     RAY_METRICS_EXPORT_ENABLED=0 \
     RAY_DISABLE_USAGE_STATS=1 \
