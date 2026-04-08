@@ -5,10 +5,13 @@ RUN apt-get update -y \
 
 RUN ldconfig /usr/local/cuda-12.9/compat/
 
-# Install vLLM nightly with Gemma 4 support + latest transformers from source
+# Install vLLM 0.16.0 (handler-compatible version)
 RUN python3 -m pip install --upgrade pip && \
-    python3 -m pip install -U vllm --pre --index-url https://pypi.org/simple --extra-index-url https://wheels.vllm.ai/nightly && \
-    python3 -m pip install git+https://github.com/huggingface/transformers.git
+    python3 -m pip install "vllm[flashinfer]==0.16.0" --extra-index-url https://download.pytorch.org/whl/cu129
+
+# Upgrade ONLY transformers to 5.5.0+ for Gemma 4 support
+# Keep vLLM 0.16.0 intact — handler depends on its internal APIs
+RUN python3 -m pip install --no-deps "transformers>=5.5.0"
 
 # Install RunPod handler dependencies
 COPY builder/requirements.txt /requirements.txt
