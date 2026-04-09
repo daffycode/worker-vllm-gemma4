@@ -7,7 +7,8 @@ RUN pip install --no-cache-dir runpod requests
 COPY src/handler_simple.py /src/handler_simple.py
 
 # Default env vars (overridden by RunPod template at runtime)
-ENV MODEL_NAME="google/gemma-4-31B-it" \
+ENV MODEL_NAME="cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit" \
+    QUANTIZATION="compressed-tensors" \
     HF_HOME="/runpod-volume/huggingface-cache/hub" \
     HUGGINGFACE_HUB_CACHE="/runpod-volume/huggingface-cache/hub"
 
